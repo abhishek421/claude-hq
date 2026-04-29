@@ -1,4 +1,4 @@
-# Claude HQ
+# Claude Ops
 
 A real-time local dashboard for monitoring and managing your [Claude Code](https://claude.ai/code) sessions.
 
@@ -42,8 +42,8 @@ npm install -g @anthropic-ai/claude-code
 ### 2. Clone and install
 
 ```bash
-git clone https://github.com/abhishek421/claude-hq.git
-cd claude-hq
+git clone https://github.com/abhishek421/claude-ops.git
+cd claude-ops
 npm install
 ```
 
@@ -56,7 +56,7 @@ npm run setup
 This does three things automatically:
 - Generates Web Push (VAPID) keys and writes them to `.env`
 - Sets `BASE_DIR` to your home directory in `.env`
-- Patches `~/.claude/settings.json` to add all HQ hooks pointing to your local clone
+- Patches `~/.claude/settings.json` to add all hooks pointing to your local clone
 
 ### 4. Start the dashboard
 
@@ -99,9 +99,9 @@ All config lives in `.env` (created by `npm run setup`, never committed):
 ```json
 {
   "hooks": {
-    "PreToolUse":        [{ "matcher": "", "hooks": [{ "type": "command", "command": "bash \"/path/to/claude-hq/hq-notify.sh\" PreToolUse",        "async": true }] }],
-    "Stop":              [{ "matcher": "", "hooks": [{ "type": "command", "command": "bash \"/path/to/claude-hq/hq-notify.sh\" Stop",              "async": true }] }],
-    "PermissionRequest": [{ "matcher": "", "hooks": [{ "type": "command", "command": "bash \"/path/to/claude-hq/hq-notify.sh\" PermissionRequest", "async": true }] }]
+    "PreToolUse":        [{ "matcher": "", "hooks": [{ "type": "command", "command": "bash \"/path/to/claude-ops/hq-notify.sh\" PreToolUse",        "async": true }] }],
+    "Stop":              [{ "matcher": "", "hooks": [{ "type": "command", "command": "bash \"/path/to/claude-ops/hq-notify.sh\" Stop",              "async": true }] }],
+    "PermissionRequest": [{ "matcher": "", "hooks": [{ "type": "command", "command": "bash \"/path/to/claude-ops/hq-notify.sh\" PermissionRequest", "async": true }] }]
   }
 }
 ```
