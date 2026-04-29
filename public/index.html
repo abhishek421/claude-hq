@@ -19,34 +19,40 @@
 
     /* ── Session cards ───────────────────────── */
     .session-card {
-      background: rgba(255,255,255,0.025);
+      background: rgba(255,255,255,0.022);
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 14px; padding: 16px;
+      border-radius: 14px; padding: 14px 16px;
       position: relative; overflow: hidden;
       transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
       cursor: default;
     }
     .session-card:hover { border-color: rgba(255,255,255,0.1); transform: translateY(-1px); }
+
+    /* top glow line */
     .session-card::before {
-      content: ''; position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
+      content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
     }
     .session-card.working::before  { background: linear-gradient(90deg,transparent,#3b82f6,transparent); filter:blur(1px); }
     .session-card.thinking::before { background: linear-gradient(90deg,transparent,#8b5cf6,transparent); filter:blur(1px); }
     .session-card.waiting::before  { background: linear-gradient(90deg,transparent,#f59e0b,transparent); filter:blur(1px); }
-    .session-card.idle::before     { background: linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent); }
+    .session-card.idle::before     { background: linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent); }
     .session-card.ended            { opacity: 0.35; }
-    .session-card.working  { box-shadow: 0 4px 32px rgba(59,130,246,0.07),  0 0 0 1px rgba(59,130,246,0.08); }
-    .session-card.thinking { box-shadow: 0 4px 32px rgba(139,92,246,0.07),  0 0 0 1px rgba(139,92,246,0.08); }
-    .session-card.waiting  { box-shadow: 0 4px 32px rgba(245,158,11,0.1),   0 0 0 1px rgba(245,158,11,0.12); }
+    .session-card.working  { box-shadow: 0 4px 32px rgba(59,130,246,0.07),  0 0 0 1px rgba(59,130,246,0.07); }
+    .session-card.thinking { box-shadow: 0 4px 32px rgba(139,92,246,0.07),  0 0 0 1px rgba(139,92,246,0.07); }
+    .session-card.waiting  { box-shadow: 0 4px 32px rgba(245,158,11,0.1),   0 0 0 1px rgba(245,158,11,0.1); }
 
-    /* ── Stat cards ──────────────────────────── */
-    .stat-card {
-      background: rgba(255,255,255,0.02);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 12px; padding: 13px 20px; min-width: 96px;
+    /* ── Card internals ──────────────────────── */
+    .card-project {
+      font-size: 13.5px; font-weight: 600; color: rgba(255,255,255,0.78);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;
     }
+    .card-path {
+      font-family: 'SF Mono','Fira Code',monospace; font-size: 10.5px;
+      color: rgba(255,255,255,0.18); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      flex: 1; min-width: 0;
+    }
+    .card-divider { height: 1px; background: rgba(255,255,255,0.04); margin: 10px 0; }
 
     /* ── Scrollbars ──────────────────────────── */
     ::-webkit-scrollbar { width: 3px; }
@@ -66,7 +72,7 @@
       justify-content: center; color: rgba(255,255,255,0.2);
       transition: background 0.15s, color 0.15s;
     }
-    .nav-btn:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); }
+    .nav-btn:hover  { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); }
     .nav-btn.active { background: rgba(139,92,246,0.12); color: rgba(167,139,250,0.9); }
     .nav-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
@@ -78,7 +84,6 @@
       transition: width 0.22s cubic-bezier(.4,0,.2,1);
     }
     #drawer.collapsed { width: 0; border-right: none; }
-
     .panel { display: none; flex-direction: column; height: 100%; min-width: 240px; }
     .panel.active { display: flex; }
     .panel-header {
@@ -98,47 +103,51 @@
     }
     .tree-item:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.65); }
     .tree-item .indent { flex-shrink: 0; }
-    .tree-item .chevron { flex-shrink: 0; width: 12px; font-size: 8px; color: rgba(255,255,255,0.12); transition: transform 0.12s; }
+    .tree-item .chevron { flex-shrink:0; width:12px; font-size:8px; color:rgba(255,255,255,0.12); transition:transform .12s; }
     .tree-item.open > .chevron { transform: rotate(90deg); }
     .tree-item .chevron.leaf { opacity: 0; }
     .tree-item .icon { flex-shrink: 0; font-size: 11px; opacity: 0.4; }
-    .tree-item.dir .name  { color: rgba(196,181,253,0.65); font-weight: 500; }
+    .tree-item.dir  .name { color: rgba(196,181,253,0.65); font-weight: 500; }
     .tree-item.dir:hover .name { color: rgba(196,181,253,1); }
     .tree-item.file .name { color: rgba(255,255,255,0.2); }
-    .tree-item .name { overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; flex: 1; min-width: 0; }
+    .tree-item .name { overflow:hidden; text-overflow:ellipsis; font-size:11.5px; flex:1; min-width:0; }
     .tree-children { display: none; }
     .tree-children.open { display: block; }
-
-    /* launch button inside dir tree items */
     .tree-launch {
       flex-shrink: 0; opacity: 0; margin-left: auto;
       font-size: 9px; padding: 1px 6px; border-radius: 3px;
       color: rgba(167,139,250,0.6); background: rgba(139,92,246,0.08);
       border: 1px solid rgba(139,92,246,0.18);
-      transition: opacity 0.12s, background 0.12s;
-      white-space: nowrap;
+      transition: opacity 0.12s, background 0.12s; white-space: nowrap;
     }
     .tree-item.dir:hover .tree-launch { opacity: 1; }
     .tree-launch:hover { background: rgba(139,92,246,0.18); color: #c4b5fd; }
 
     /* ── Settings panel ──────────────────────── */
+    .setting-section {
+      padding: 10px 12px 4px; font-size: 9px; font-weight: 600;
+      color: rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: .12em;
+    }
     .setting-row {
       display: flex; align-items: center; justify-content: space-between;
       padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      gap: 10px;
     }
     .setting-label { font-size: 11.5px; color: rgba(255,255,255,0.45); font-weight: 500; }
     .setting-sub   { font-size: 10px; color: rgba(255,255,255,0.18); margin-top: 2px; }
+
+    /* ── Toggle switch ───────────────────────── */
     .toggle-switch {
-      position: relative; width: 32px; height: 18px;
+      position: relative; width: 32px; height: 18px; flex-shrink: 0;
       background: rgba(255,255,255,0.08); border-radius: 9px;
-      cursor: pointer; transition: background 0.2s; flex-shrink: 0; border: none;
+      cursor: pointer; transition: background 0.2s; border: none;
     }
     .toggle-switch::after {
       content: ''; position: absolute; top: 2px; left: 2px;
       width: 14px; height: 14px; border-radius: 50%;
       background: rgba(255,255,255,0.3); transition: transform 0.2s, background 0.2s;
     }
-    .toggle-switch.on { background: rgba(139,92,246,0.5); }
+    .toggle-switch.on { background: rgba(139,92,246,0.45); }
     .toggle-switch.on::after { transform: translateX(14px); background: #c4b5fd; }
 
     .sound-select {
@@ -151,7 +160,7 @@
 
     /* ── Status badge ────────────────────────── */
     .status-badge {
-      display: inline-flex; align-items: center; gap: 5px;
+      display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
       font-size: 9.5px; font-weight: 600; padding: 3px 9px;
       border-radius: 20px; text-transform: uppercase; letter-spacing: 0.07em;
     }
@@ -169,27 +178,26 @@
 
     /* ── Tool pill ───────────────────────────── */
     .tool-pill {
-      font-size: 10px; color: #60a5fa;
+      font-size: 10px; color: #60a5fa; flex-shrink: 0;
       background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.14);
-      padding: 2px 8px; border-radius: 4px;
-      max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      padding: 1px 7px; border-radius: 4px;
+      max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       font-family: 'SF Mono','Fira Code',monospace;
     }
 
-    /* ── Kill button (on card) ───────────────── */
+    /* ── Kill button ─────────────────────────── */
     .kill-btn {
-      margin-left: auto; padding: 2px 7px; border-radius: 5px; font-size: 10px;
-      color: rgba(255,255,255,0.12); background: transparent;
+      flex-shrink: 0; padding: 2px 6px; border-radius: 5px; font-size: 10px;
+      color: rgba(255,255,255,0.1); background: transparent;
       border: 1px solid transparent; cursor: pointer;
       font-family: 'Poppins', sans-serif; font-weight: 500;
       transition: color 0.15s, background 0.15s, border-color 0.15s;
-      flex-shrink: 0;
     }
     .kill-btn:hover { color: #f87171; background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
 
     /* ── PS source badge ─────────────────────── */
     .source-ps {
-      font-size: 9px; color:rgba(74,222,128,0.45);
+      font-size: 9px; color:rgba(74,222,128,0.45); flex-shrink: 0;
       background:rgba(74,222,128,0.05); border:1px solid rgba(74,222,128,0.1);
       border-radius:3px; padding:1px 5px;
     }
@@ -208,30 +216,30 @@
 
     /* ── Current step ────────────────────────── */
     .current-step {
-      display: flex; align-items: center; gap: 6px; padding: 5px 7px;
-      margin-top: 8px; border-radius: 6px;
-      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
+      display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+      border-radius: 7px; background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
       font-family: 'SF Mono','Fira Code',monospace; font-size: 10.5px;
-      color: rgba(255,255,255,0.25); white-space: nowrap; overflow: hidden;
+      color: rgba(255,255,255,0.22); white-space: nowrap; overflow: hidden;
     }
-    .current-step .cs-icon { flex-shrink: 0; width: 13px; text-align: center; }
-    .current-step .cs-text { flex: 1; overflow: hidden; text-overflow: ellipsis; }
-    .current-step .cs-ts   { flex-shrink: 0; font-size: 9px; color: rgba(255,255,255,0.1); margin-left: auto; }
-    .current-step.ev-working  .cs-icon, .current-step.ev-working  .cs-text { color: rgba(96,165,250,0.7); }
-    .current-step.ev-done     .cs-icon { color: rgba(74,222,128,0.55); }
-    .current-step.ev-done     .cs-text { color: rgba(255,255,255,0.25); }
-    .current-step.ev-waiting  .cs-icon, .current-step.ev-waiting  .cs-text { color: rgba(251,191,36,0.7); }
-    .current-step.ev-subagent .cs-icon, .current-step.ev-subagent .cs-text { color: rgba(56,189,248,0.65); }
-    .current-step.ev-task     .cs-icon, .current-step.ev-task     .cs-text { color: rgba(163,230,53,0.65); }
-    .current-step.ev-notif    .cs-icon, .current-step.ev-notif    .cs-text { color: rgba(232,121,249,0.65); }
-    .current-step.ev-session  .cs-icon, .current-step.ev-session  .cs-text { color: rgba(255,255,255,0.25); }
+    .current-step .cs-icon { flex-shrink:0; width:13px; text-align:center; }
+    .current-step .cs-text { flex:1; overflow:hidden; text-overflow:ellipsis; }
+    .current-step .cs-ts   { flex-shrink:0; font-size:9px; color:rgba(255,255,255,0.1); margin-left:auto; }
+    .current-step.ev-working  .cs-icon, .current-step.ev-working  .cs-text { color:rgba(96,165,250,0.7); }
+    .current-step.ev-done     .cs-icon { color:rgba(74,222,128,0.55); }
+    .current-step.ev-done     .cs-text { color:rgba(255,255,255,0.25); }
+    .current-step.ev-waiting  .cs-icon, .current-step.ev-waiting  .cs-text { color:rgba(251,191,36,0.7); }
+    .current-step.ev-subagent .cs-icon, .current-step.ev-subagent .cs-text { color:rgba(56,189,248,0.65); }
+    .current-step.ev-task     .cs-icon, .current-step.ev-task     .cs-text { color:rgba(163,230,53,0.65); }
+    .current-step.ev-notif    .cs-icon, .current-step.ev-notif    .cs-text { color:rgba(232,121,249,0.65); }
+    .current-step.ev-session  .cs-icon, .current-step.ev-session  .cs-text { color:rgba(255,255,255,0.22); }
 
     /* ── Context menu ────────────────────────── */
     .ctx-menu {
       position: fixed;
       background: rgba(8,8,18,0.88); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
       border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-      padding: 4px 0; min-width: 205px; z-index: 1000;
+      padding: 4px 0; min-width: 200px; z-index: 1000;
       box-shadow: 0 20px 60px rgba(0,0,0,0.7);
       display: none; font-family: 'Poppins',sans-serif;
     }
@@ -242,12 +250,12 @@
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px;
       font-family: 'SF Mono','Fira Code',monospace;
     }
-    .ctx-item { padding: 8px 14px; font-size: 12px; color: rgba(255,255,255,0.45); cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 400; }
-    .ctx-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
-    .ctx-item.primary { color: rgba(167,139,250,0.8); }
-    .ctx-item.primary:hover { color: #c4b5fd; }
-    .ctx-item.danger  { color: rgba(248,113,113,0.7); }
-    .ctx-item.danger:hover  { background: rgba(239,68,68,0.07); color: #fca5a5; }
+    .ctx-item { padding:8px 14px; font-size:12px; color:rgba(255,255,255,0.45); cursor:pointer; display:flex; align-items:center; gap:8px; font-weight:400; }
+    .ctx-item:hover { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.85); }
+    .ctx-item.primary { color:rgba(167,139,250,0.8); }
+    .ctx-item.primary:hover { color:#c4b5fd; }
+    .ctx-item.danger  { color:rgba(248,113,113,0.7); }
+    .ctx-item.danger:hover  { background:rgba(239,68,68,0.07); color:#fca5a5; }
 
     /* ── Toast ───────────────────────────────── */
     .toast {
@@ -260,28 +268,16 @@
       font-family: 'Poppins',sans-serif; font-weight: 500;
     }
     .toast.show    { opacity: 1; transform: translateY(0); }
-    .toast.success { border-color: rgba(34,197,94,0.25); color: #22c55e; }
-    .toast.error   { border-color: rgba(239,68,68,0.25); color: #f87171; }
+    .toast.success { border-color: rgba(34,197,94,0.25);  color: #22c55e; }
+    .toast.error   { border-color: rgba(239,68,68,0.25);  color: #f87171; }
 
     /* ── Header pulse ────────────────────────── */
     @keyframes hpulse { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.4)} 50%{box-shadow:0 0 0 4px rgba(34,197,94,0)} }
-    .header-pulse { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: hpulse 2.5s infinite; flex-shrink: 0; }
+    .header-pulse { width:7px; height:7px; border-radius:50%; background:#22c55e; animation:hpulse 2.5s infinite; flex-shrink:0; }
 
     /* ── GitHub link ─────────────────────────── */
-    #github-link { color: rgba(255,255,255,0.18); display: flex; align-items: center; transition: color 0.15s; }
-    #github-link:hover { color: rgba(255,255,255,0.55); }
-
-    /* ── Push btn (in settings) ──────────────── */
-    #push-btn {
-      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 7px; padding: 5px 11px;
-      font-family: 'Poppins',sans-serif; font-size: 11px; font-weight: 500;
-      cursor: pointer; color: rgba(255,255,255,0.3);
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-    }
-    #push-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); }
-    #push-btn.on  { border-color: rgba(34,197,94,0.3);  color: #22c55e; background: rgba(34,197,94,0.06); }
-    #push-btn.off { border-color: rgba(239,68,68,0.3);  color: #f87171; }
+    #github-link { color:rgba(255,255,255,0.18); display:flex; align-items:center; transition:color .15s; }
+    #github-link:hover { color:rgba(255,255,255,0.55); }
   </style>
 </head>
 <body class="bg-[#060610] font-sans min-h-screen flex flex-col text-white">
@@ -308,7 +304,7 @@
 <!-- Layout -->
 <div class="flex flex-1 overflow-hidden">
 
-  <!-- Left navbar (icon strip) -->
+  <!-- Navbar strip -->
   <nav id="navbar">
     <button class="nav-btn active" id="nav-files" title="File Browser">
       <svg viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>
@@ -334,18 +330,16 @@
       <div class="panel-header">Settings</div>
       <div class="overflow-y-auto flex-1">
 
-        <!-- Section: Notifications -->
-        <div style="padding:8px 12px 4px;font-size:9px;font-weight:600;color:rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:.12em">Push Notifications</div>
+        <div class="setting-section">Push Notifications</div>
         <div class="setting-row">
           <div>
             <div class="setting-label">Alert on input needed</div>
-            <div class="setting-sub">OS notification when a session waits</div>
+            <div class="setting-sub">OS notification when session waits</div>
           </div>
-          <button id="push-btn">Enable</button>
+          <button class="toggle-switch" id="push-toggle"></button>
         </div>
 
-        <!-- Section: Audio -->
-        <div style="padding:12px 12px 4px;font-size:9px;font-weight:600;color:rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:.12em">Audio Alerts</div>
+        <div class="setting-section" style="padding-top:14px">Audio Alerts</div>
         <div class="setting-row">
           <div>
             <div class="setting-label">Audio alerts</div>
@@ -362,7 +356,7 @@
           </select>
         </div>
         <div style="padding:8px 12px">
-          <button onclick="testSound()" style="font-size:10.5px;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'Poppins',sans-serif;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.55)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">▶ Preview</button>
+          <button onclick="testSound()" style="font-size:10.5px;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'Poppins',sans-serif;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.5)'" onmouseout="this.style.color='rgba(255,255,255,.25)'">▶ Preview</button>
         </div>
 
       </div>
@@ -375,28 +369,7 @@
 
     <div id="attention-banner" style="display:none"></div>
 
-    <!-- Stats -->
-    <div class="flex gap-2.5 mb-5 flex-wrap">
-      <div class="stat-card">
-        <div class="text-[22px] font-semibold text-white/60 leading-none" id="st-total">0</div>
-        <div class="text-[9px] font-medium text-white/[0.18] uppercase tracking-[0.12em] mt-1">Sessions</div>
-      </div>
-      <div class="stat-card">
-        <div class="text-[22px] font-semibold text-blue-400 leading-none" id="st-working">0</div>
-        <div class="text-[9px] font-medium text-white/[0.18] uppercase tracking-[0.12em] mt-1">Working</div>
-      </div>
-      <div class="stat-card">
-        <div class="text-[22px] font-semibold text-violet-400 leading-none" id="st-thinking">0</div>
-        <div class="text-[9px] font-medium text-white/[0.18] uppercase tracking-[0.12em] mt-1">Thinking</div>
-      </div>
-      <div class="stat-card">
-        <div class="text-[22px] font-semibold text-amber-400 leading-none" id="st-waiting">0</div>
-        <div class="text-[9px] font-medium text-white/[0.18] uppercase tracking-[0.12em] mt-1">Needs input</div>
-      </div>
-    </div>
-
-    <!-- Grid -->
-    <div id="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:10px">
+    <div id="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px">
       <div class="text-center text-white/[0.12] text-[13px] py-16" style="grid-column:1/-1">
         No active sessions. Start Claude in a folder to see it here.
       </div>
@@ -419,6 +392,7 @@
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
 function shortPath(p) { return p.replace(/^\/Users\/[^/]+/, '~'); }
+function baseName(p)  { return p.split('/').filter(Boolean).pop() || p; }
 
 function ago(ts) {
   const s = Math.floor((Date.now() - ts) / 1000);
@@ -432,34 +406,33 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Inline SVGs to avoid external deps in dynamically-built HTML
+const ICON_FOLDER = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:rgba(196,181,253,0.4)"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+
 // ─── Drawer / nav toggle ──────────────────────────────────────────────────────
 
-let drawerPanel = 'files'; // 'files' | 'settings' | null
+let drawerPanel = 'files';
 
 function setDrawer(panel) {
-  const drawer = document.getElementById('drawer');
-  const navFiles    = document.getElementById('nav-files');
-  const navSettings = document.getElementById('nav-settings');
-  const panelFiles    = document.getElementById('panel-files');
-  const panelSettings = document.getElementById('panel-settings');
+  const drawer   = document.getElementById('drawer');
+  const navFiles = document.getElementById('nav-files');
+  const navSetts = document.getElementById('nav-settings');
+  const pFiles   = document.getElementById('panel-files');
+  const pSetts   = document.getElementById('panel-settings');
 
   if (drawerPanel === panel) {
-    // toggle closed
     drawerPanel = null;
     drawer.classList.add('collapsed');
     navFiles.classList.remove('active');
-    navSettings.classList.remove('active');
+    navSetts.classList.remove('active');
     return;
   }
-
   drawerPanel = panel;
   drawer.classList.remove('collapsed');
-
-  panelFiles.classList.toggle('active',    panel === 'files');
-  panelSettings.classList.toggle('active', panel === 'settings');
-
-  navFiles.classList.toggle('active',    panel === 'files');
-  navSettings.classList.toggle('active', panel === 'settings');
+  pFiles.classList.toggle('active', panel === 'files');
+  pSetts.classList.toggle('active', panel === 'settings');
+  navFiles.classList.toggle('active', panel === 'files');
+  navSetts.classList.toggle('active', panel === 'settings');
 }
 
 document.getElementById('nav-files').addEventListener('click',    () => setDrawer('files'));
@@ -468,7 +441,6 @@ document.getElementById('nav-settings').addEventListener('click', () => setDrawe
 // ─── Audio alerts ─────────────────────────────────────────────────────────────
 
 let audioAlertsOn = false;
-
 const audioToggle = document.getElementById('audio-toggle');
 audioToggle.addEventListener('click', () => {
   audioAlertsOn = !audioAlertsOn;
@@ -476,51 +448,44 @@ audioToggle.addEventListener('click', () => {
 });
 
 const SOUNDS = {
-  chime: (ac) => {
-    const osc = ac.createOscillator(), g = ac.createGain();
-    osc.connect(g); g.connect(ac.destination);
-    osc.type = 'sine'; osc.frequency.value = 880;
+  chime: ac => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = 'sine'; o.frequency.value = 880;
     g.gain.setValueAtTime(0, ac.currentTime);
     g.gain.linearRampToValueAtTime(0.35, ac.currentTime + 0.01);
     g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.9);
-    osc.start(); osc.stop(ac.currentTime + 0.9);
+    o.start(); o.stop(ac.currentTime + 0.9);
   },
-  pulse: (ac) => {
-    [0, 0.18].forEach(delay => {
-      const osc = ac.createOscillator(), g = ac.createGain();
-      osc.connect(g); g.connect(ac.destination);
-      osc.type = 'sine'; osc.frequency.value = 660;
-      g.gain.setValueAtTime(0, ac.currentTime + delay);
-      g.gain.linearRampToValueAtTime(0.3, ac.currentTime + delay + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + delay + 0.14);
-      osc.start(ac.currentTime + delay);
-      osc.stop(ac.currentTime + delay + 0.15);
+  pulse: ac => {
+    [0, 0.2].forEach(d => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.connect(g); g.connect(ac.destination);
+      o.type = 'sine'; o.frequency.value = 660;
+      g.gain.setValueAtTime(0, ac.currentTime + d);
+      g.gain.linearRampToValueAtTime(0.3, ac.currentTime + d + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + d + 0.14);
+      o.start(ac.currentTime + d); o.stop(ac.currentTime + d + 0.15);
     });
   },
-  soft: (ac) => {
-    const osc = ac.createOscillator(), g = ac.createGain();
-    osc.connect(g); g.connect(ac.destination);
-    osc.type = 'triangle'; osc.frequency.value = 520;
+  soft: ac => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = 'triangle'; o.frequency.value = 520;
     g.gain.setValueAtTime(0, ac.currentTime);
     g.gain.linearRampToValueAtTime(0.2, ac.currentTime + 0.02);
     g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.5);
-    osc.start(); osc.stop(ac.currentTime + 0.5);
+    o.start(); o.stop(ac.currentTime + 0.5);
   },
 };
 
 function playAlert() {
   if (!audioAlertsOn) return;
-  try {
-    const ac = new AudioContext();
-    const type = document.getElementById('sound-select').value;
-    (SOUNDS[type] || SOUNDS.chime)(ac);
-  } catch { /* audio not available */ }
+  try { const ac = new AudioContext(); (SOUNDS[document.getElementById('sound-select').value] || SOUNDS.chime)(ac); }
+  catch { /* audio unavailable */ }
 }
 
-function testSound() {
-  audioAlertsOn = true;
-  playAlert();
-}
+function testSound() { audioAlertsOn = true; audioToggle.classList.add('on'); playAlert(); }
 
 // ─── Current step renderer ────────────────────────────────────────────────────
 
@@ -544,23 +509,17 @@ function renderCurrentStep(activity) {
 // ─── Sessions ─────────────────────────────────────────────────────────────────
 
 const STATUS_LABEL = { working:'Working', thinking:'Thinking', waiting:'Needs input', idle:'Idle', ended:'Ended' };
-
-const prevStates = new Map(); // session_id → status
+const prevStates = new Map();
 
 async function refreshSessions() {
   try {
     const { sessions, updatedAt } = await fetch('/api/sessions').then(r => r.json());
 
-    document.getElementById('st-total').textContent   = sessions.filter(s => s.status !== 'ended').length;
-    document.getElementById('st-working').textContent  = sessions.filter(s => s.status === 'working').length;
-    document.getElementById('st-thinking').textContent = sessions.filter(s => s.status === 'thinking').length;
-    document.getElementById('st-waiting').textContent  = sessions.filter(s => s.status === 'waiting').length;
-    document.getElementById('updated').textContent     = new Date(updatedAt).toLocaleTimeString();
+    document.getElementById('updated').textContent = new Date(updatedAt).toLocaleTimeString();
 
-    // Fire audio alert on transition into 'waiting'
+    // Audio alert on transition to 'waiting'
     for (const s of sessions) {
-      const prev = prevStates.get(s.session_id);
-      if (s.status === 'waiting' && prev !== 'waiting') playAlert();
+      if (s.status === 'waiting' && prevStates.get(s.session_id) !== 'waiting') playAlert();
       prevStates.set(s.session_id, s.status);
     }
 
@@ -580,17 +539,22 @@ async function refreshSessions() {
     }
 
     grid.innerHTML = sessions.map(s => {
-      const label = STATUS_LABEL[s.status] || s.status;
-      const sourcePill = s.source === 'ps' ? `<span class="source-ps">ps</span>` : '';
-      const toolPill   = s.currentTool ? `<span class="tool-pill">${esc(s.currentTool)}</span>` : '';
+      const label    = STATUS_LABEL[s.status] || s.status;
+      const project  = esc(baseName(s.cwd));
+      const fullPath = esc(shortPath(s.cwd));
+      const toolPill = s.currentTool ? `<span class="tool-pill">${esc(s.currentTool)}</span>` : '';
+      const srcBadge = s.source === 'ps' ? `<span class="source-ps">ps</span>` : '';
+      const sidText  = s.session_id.startsWith('ps:')
+        ? `pid:${s.session_id.slice(3)}`
+        : s.session_id.slice(0, 8);
 
       let subRow = '';
       if (s.subagents.active > 0 || s.subagents.total > 0) {
-        const chips = s.subagents.types.map(t => `<span class="agent-chip">${esc(t)}</span>`).join('');
-        const done  = s.subagents.total - s.subagents.active;
+        const chips   = s.subagents.types.map(t => `<span class="agent-chip">${esc(t)}</span>`).join('');
+        const done    = s.subagents.total - s.subagents.active;
         const doneChip = done > 0 ? `<span class="agent-chip done">+${done} done</span>` : '';
         subRow = `<div class="flex items-center gap-1.5 flex-wrap mb-2">
-          <span style="font-size:9.5px;color:rgba(255,255,255,0.2);font-weight:500;text-transform:uppercase;letter-spacing:.08em">⎇ agents</span>
+          <span style="font-size:9px;color:rgba(255,255,255,0.18);font-weight:600;text-transform:uppercase;letter-spacing:.1em">⎇ agents</span>
           ${chips}${doneChip}
         </div>`;
       }
@@ -599,36 +563,41 @@ async function refreshSessions() {
       if (s.tasks.total > 0) {
         const pct = Math.round((s.tasks.done / s.tasks.total) * 100);
         taskRow = `<div class="mb-2.5">
-          <div class="flex justify-between mb-1" style="font-size:9.5px;color:rgba(255,255,255,0.2)">
-            <span style="font-weight:500;text-transform:uppercase;letter-spacing:.08em">◉ tasks</span>
+          <div class="flex justify-between mb-1.5" style="font-size:9px;color:rgba(255,255,255,0.18)">
+            <span style="font-weight:600;text-transform:uppercase;letter-spacing:.1em">◉ tasks</span>
             <span>${s.tasks.done} / ${s.tasks.total}</span>
           </div>
           <div class="task-track"><div class="task-fill" style="width:${pct}%"></div></div>
         </div>`;
       }
 
-      const sidText = s.session_id.startsWith('ps:')
-        ? `pid:${s.session_id.slice(3)}`
-        : s.session_id.slice(0, 8);
+      const hasExtra = subRow || taskRow || s.activity.length;
 
       return `<div class="session-card ${s.status}" data-session-id="${s.session_id}" data-cwd="${esc(s.cwd)}">
-        <div class="flex items-center gap-2 mb-2.5">
-          <span class="status-badge ${s.status}"><span class="dot"></span>${label}</span>
-          ${toolPill}
-          ${sourcePill}
-          <span style="font-size:9.5px;color:rgba(255,255,255,0.1);font-family:'SF Mono','Fira Code',monospace;margin-left:auto">${sidText}</span>
+
+        <!-- Row 1: project name + status badge + kill -->
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+          ${ICON_FOLDER}
+          <span class="card-project">${project}</span>
+          <span class="status-badge ${s.status}" style="flex-shrink:0"><span class="dot"></span>${label}</span>
           <button class="kill-btn" data-session-id="${s.session_id}" title="Kill session">✕</button>
         </div>
-        <div class="mb-2" style="font-family:'SF Mono','Fira Code',monospace;font-size:11.5px;color:rgba(255,255,255,0.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-          <span style="color:rgba(255,255,255,0.12)">dir</span> ${esc(shortPath(s.cwd))}
+
+        <!-- Row 2: full path + meta -->
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:${hasExtra ? 10 : 0}px">
+          <span class="card-path">${fullPath}</span>
+          ${toolPill}
+          ${srcBadge}
+          <span style="font-size:9px;color:rgba(255,255,255,0.1);font-family:'SF Mono','Fira Code',monospace;flex-shrink:0">${sidText}</span>
         </div>
+
+        ${hasExtra ? `<div class="card-divider"></div>` : ''}
         ${subRow}
         ${taskRow}
         ${renderCurrentStep(s.activity)}
       </div>`;
     }).join('');
 
-    // Session card event listeners
     document.querySelectorAll('.session-card').forEach(card => {
       card.addEventListener('contextmenu', e => {
         e.preventDefault(); e.stopPropagation();
@@ -639,8 +608,7 @@ async function refreshSessions() {
     document.querySelectorAll('.kill-btn').forEach(btn => {
       btn.addEventListener('click', async e => {
         e.stopPropagation();
-        const id = btn.dataset.sessionId;
-        const r = await fetch('/api/kill', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ session_id: id }) });
+        const r = await fetch('/api/kill', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ session_id: btn.dataset.sessionId }) });
         if (r.ok) { toast('Session killed', 'success'); refreshSessions(); }
         else { const { error } = await r.json(); toast('Error: ' + error, 'error'); }
       });
@@ -655,14 +623,14 @@ async function refreshSessions() {
 
 let BASE_DIR = '';
 
-async function loadDir(dirPath) {
-  const r = await fetch(`/api/files?path=${encodeURIComponent(dirPath)}`);
+async function loadDir(p) {
+  const r = await fetch(`/api/files?path=${encodeURIComponent(p)}`);
   if (!r.ok) throw new Error();
   return r.json();
 }
 
-async function launchClaude(path) {
-  const r = await fetch('/api/launch-claude', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ path }) });
+async function launchClaude(p) {
+  const r = await fetch('/api/launch-claude', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ path: p }) });
   r.ok ? toast('Session launched', 'success') : toast('Launch failed', 'error');
 }
 
@@ -671,7 +639,6 @@ function buildTreeItem(item, depth) {
   const div = document.createElement('div');
   div.className = `tree-item ${item.isDir ? 'dir' : 'file'}`;
   div.dataset.path = item.path;
-
   div.innerHTML = `
     <span class="indent" style="width:${indent}px;display:inline-block;flex-shrink:0"></span>
     <span class="chevron ${item.isDir ? '' : 'leaf'}">▶</span>
@@ -682,11 +649,7 @@ function buildTreeItem(item, depth) {
 
   if (!item.isDir) return { el: div, children: null };
 
-  // launch button click
-  div.querySelector('.tree-launch').addEventListener('click', e => {
-    e.stopPropagation();
-    launchClaude(item.path);
-  });
+  div.querySelector('.tree-launch').addEventListener('click', e => { e.stopPropagation(); launchClaude(item.path); });
 
   const kids = document.createElement('div');
   kids.className = 'tree-children';
@@ -741,24 +704,20 @@ function showCtx(e, type, data) {
   document.getElementById('ctx-reveal').style.display = type === 'file'    ? 'flex' : 'none';
   document.getElementById('ctx-kill').style.display   = type === 'session' ? 'flex' : 'none';
   ctxMenu.style.left = Math.min(e.clientX, window.innerWidth  - 220) + 'px';
-  ctxMenu.style.top  = Math.min(e.clientY, window.innerHeight - 130) + 'px';
+  ctxMenu.style.top  = Math.min(e.clientY, window.innerHeight - 120) + 'px';
   ctxMenu.classList.add('visible');
 }
 
 function hideCtx() { ctxMenu.classList.remove('visible'); ctxData = null; }
 
 document.getElementById('ctx-launch').addEventListener('click', async () => {
-  if (!ctxData) return;
-  const p = ctxData.data.path; hideCtx();
-  launchClaude(p);
+  if (!ctxData) return; const p = ctxData.data.path; hideCtx(); launchClaude(p);
 });
-
 document.getElementById('ctx-reveal').addEventListener('click', () => {
   if (!ctxData) return;
   fetch('/api/reveal', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ path: ctxData.data.path }) });
   hideCtx();
 });
-
 document.getElementById('ctx-kill').addEventListener('click', async () => {
   if (!ctxData) return;
   const id = ctxData.data.session_id; hideCtx();
@@ -775,8 +734,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') hideCtx(); }
 let _toastTimer;
 function toast(msg, type = '') {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `toast ${type} show`;
+  el.textContent = msg; el.className = `toast ${type} show`;
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
 }
@@ -787,40 +745,34 @@ let _swReg = null, _pushSub = null;
 
 function urlBase64ToUint8Array(b64) {
   const pad = '='.repeat((4 - b64.length % 4) % 4);
-  const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = atob(base64);
-  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  const b = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from([...atob(b)].map(c => c.charCodeAt(0)));
 }
 
 async function initPush() {
-  const btn = document.getElementById('push-btn');
+  const toggle = document.getElementById('push-toggle');
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    btn.textContent = 'Not supported'; btn.disabled = true; return;
+    toggle.disabled = true; toggle.style.opacity = '0.3'; return;
   }
-  _swReg = await navigator.serviceWorker.register('/sw.js');
+  _swReg   = await navigator.serviceWorker.register('/sw.js');
   _pushSub = await _swReg.pushManager.getSubscription();
-  updatePushBtn();
-  btn.addEventListener('click', togglePush);
-}
-
-function updatePushBtn() {
-  const btn = document.getElementById('push-btn');
-  if (_pushSub) { btn.textContent = '🔔 On'; btn.className = 'on'; }
-  else          { btn.textContent = 'Enable'; btn.className = ''; }
+  toggle.classList.toggle('on', !!_pushSub);
+  toggle.addEventListener('click', togglePush);
 }
 
 async function togglePush() {
+  const toggle = document.getElementById('push-toggle');
   if (_pushSub) {
     await fetch('/api/push/unsubscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ endpoint: _pushSub.endpoint }) });
     await _pushSub.unsubscribe();
-    _pushSub = null; updatePushBtn(); toast('Push alerts disabled');
+    _pushSub = null; toggle.classList.remove('on'); toast('Push alerts disabled');
   } else {
     const perm = await Notification.requestPermission();
-    if (perm !== 'granted') { toast('Permission denied', 'error'); document.getElementById('push-btn').className = 'off'; return; }
+    if (perm !== 'granted') { toast('Permission denied', 'error'); return; }
     const { key } = await fetch('/api/push/vapid-public-key').then(r => r.json());
     _pushSub = await _swReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(key) });
     await fetch('/api/push/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(_pushSub) });
-    updatePushBtn(); toast('Push alerts enabled', 'success');
+    toggle.classList.add('on'); toast('Push alerts enabled', 'success');
   }
 }
 

@@ -163,8 +163,8 @@ app.post('/api/hook', (req, res) => {
       session.status = 'waiting';
       pushActivity(session, '⚠', `Permission: ${data?.tool_name || 'tool'}`);
       sendPush(
-        '⚠ Confirmation needed',
-        `${path.basename(session.cwd)} — wants to run ${data?.tool_name || 'a tool'}`,
+        path.basename(session.cwd),
+        `Needs your input to use ${data?.tool_name || 'a tool'}`,
         { url: 'http://localhost:4242', session_id }
       );
       break;
@@ -214,7 +214,7 @@ app.post('/api/hook', (req, res) => {
       if (session.notifications.length > 5) session.notifications.length = 5;
       pushActivity(session, '🔔', content.slice(0, 60));
       sendPush(
-        '🔔 ' + path.basename(session.cwd),
+        path.basename(session.cwd),
         content,
         { url: 'http://localhost:4242', session_id }
       );
