@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude HQ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0f;
+      color: #e2e8f0;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      border-bottom: 1px solid #1e1e2e;
+      flex-shrink: 0;
+    }
+
+    header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.05em; color: #f1f5f9; }
+    .pulse { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(.8); } }
+    .meta { font-size: 11px; color: #334155; }
+
+    #push-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid #1e1e2e;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    #push-btn:hover { border-color: #334155; color: #94a3b8; }
+    #push-btn.on  { border-color: #166534; color: #22c55e; }
+    #push-btn.off { border-color: #7f1d1d; color: #f87171; }
+
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── File Browser ─────────────────────────────── */
+    .filebrowser {
+      width: 260px;
+      flex-shrink: 0;
+      border-right: 1px solid #1e1e2e;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-label {
+      padding: 10px 12px;
+      font-size: 9px;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border-bottom: 1px solid #1e1e2e;
+      flex-shrink: 0;
+    }
+
+    .filebrowser-tree { overflow-y: auto; flex: 1; padding: 4px 0; }
+    .filebrowser-tree::-webkit-scrollbar { width: 3px; }
+    .filebrowser-tree::-webkit-scrollbar-thumb { background: #1e1e2e; }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 6px 3px 0;
+      cursor: pointer;
+      user-select: none;
+      font-size: 11.5px;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .tree-item:hover { background: #0f0f1a; color: #cbd5e1; }
+    .tree-item .indent { flex-shrink: 0; }
+    .tree-item .chevron { flex-shrink: 0; width: 12px; font-size: 8px; color: #1e293b; transition: transform 0.12s; }
+    .tree-item.open > .chevron { transform: rotate(90deg); }
+    .tree-item .chevron.leaf { opacity: 0; }
+    .tree-item .icon { flex-shrink: 0; font-size: 11px; }
+    .tree-item.dir .name { color: #a78bfa; }
+    .tree-item.file .name { color: #475569; }
+    .tree-item .name { overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; }
+    .tree-children { display: none; }
+    .tree-children.open { display: block; }
+
+    /* ── Sessions panel ───────────────────────────── */
+    .sessions-panel { flex: 1; overflow-y: auto; padding: 20px 22px; }
+    .sessions-panel::-webkit-scrollbar { width: 3px; }
+    .sessions-panel::-webkit-scrollbar-thumb { background: #1e1e2e; }
+
+    /* Stats row */
+    .stats { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+
+    .stat {
+      background: #0d0d16;
+      border: 1px solid #1a1a2e;
+      border-radius: 8px;
+      padding: 12px 18px;
+      min-width: 100px;
+    }
+
+    .stat-value { font-size: 24px; font-weight: 700; color: #94a3b8; }
+    .stat-label { font-size: 10px; color: #334155; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.1em; }
+    .stat.s-working  .stat-value { color: #3b82f6; }
+    .stat.s-thinking .stat-value { color: #8b5cf6; }
+    .stat.s-waiting  .stat-value { color: #f59e0b; }
+
+    /* Attention banner */
+    .attention {
+      background: #1c1207;
+      border: 1px solid #78350f;
+      border-radius: 7px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 11.5px;
+      color: #d97706;
+      display: none;
+    }
+    .attention strong { color: #fbbf24; }
+
+    /* Cards grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 10px; }
+
+    .card {
+      background: #0d0d16;
+      border: 1px solid #1a1a2e;
+      border-left: 3px solid #1a1a2e;
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: border-color 0.15s;
+    }
+
+    .card:hover { border-color: #252538; border-left-color: var(--accent); }
+
+    .card.working  { --accent: #3b82f6; border-left-color: #3b82f6; }
+    .card.thinking { --accent: #8b5cf6; border-left-color: #8b5cf6; }
+    .card.waiting  { --accent: #f59e0b; border-left-color: #f59e0b; }
+    .card.idle     { --accent: #1e293b; border-left-color: #1e293b; }
+    .card.ended    { --accent: #374151; border-left-color: #374151; opacity: 0.5; }
+
+    /* Card header */
+    .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+
+    .badge {
+      font-size: 9px; font-weight: 700; padding: 2px 7px;
+      border-radius: 3px; text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0;
+    }
+    .badge.working  { background: #0f2044; color: #60a5fa; }
+    .badge.thinking { background: #1e0a3c; color: #a78bfa; }
+    .badge.waiting  { background: #2d1a00; color: #fbbf24; }
+    .badge.idle     { background: #0f172a; color: #334155; }
+    .badge.ended    { background: #111827; color: #4b5563; }
+
+    .tool-pill {
+      font-size: 10px; color: #60a5fa; background: #0c1e3d;
+      padding: 2px 7px; border-radius: 3px; max-width: 180px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .session-id { font-size: 10px; color: #1e293b; margin-left: auto; flex-shrink: 0; }
+    .source-ps  { font-size: 9px; color: #1e3a2e; background: #0a1f14; border: 1px solid #14291e; border-radius: 3px; padding: 1px 5px; }
+
+    /* CWD */
+    .cwd { font-size: 11.5px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
+    .cwd em { color: #334155; font-style: normal; }
+
+    /* Subagents */
+    .subagents-row {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 6px; flex-wrap: wrap;
+    }
+    .subagents-label { font-size: 10px; color: #475569; flex-shrink: 0; }
+    .agent-chip {
+      font-size: 9px; padding: 1px 6px; border-radius: 3px;
+      background: #0f1f36; color: #38bdf8; border: 1px solid #0c2340;
+      white-space: nowrap;
+    }
+    .agent-chip.done { background: #0f1a0f; color: #334155; border-color: #1a2e1a; }
+
+    /* Tasks */
+    .tasks-row { margin-bottom: 8px; }
+    .tasks-meta { display: flex; justify-content: space-between; font-size: 10px; color: #334155; margin-bottom: 4px; }
+    .tasks-meta span { color: #475569; }
+    .task-track { height: 3px; background: #1a1a2e; border-radius: 2px; overflow: hidden; }
+    .task-fill  { height: 100%; background: #22c55e; border-radius: 2px; transition: width 0.4s; }
+
+    /* Activity feed */
+    .activity-feed { border-top: 1px solid #1a1a2e; padding-top: 8px; margin-top: 4px; }
+    .activity-item {
+      display: flex; align-items: baseline; gap: 6px;
+      font-size: 10.5px; color: #334155; padding: 1.5px 0;
+      white-space: nowrap; overflow: hidden;
+    }
+    .activity-item .a-icon { flex-shrink: 0; width: 12px; text-align: center; }
+    .activity-item .a-text { flex: 1; overflow: hidden; text-overflow: ellipsis; color: #475569; }
+    .activity-item .a-ts   { flex-shrink: 0; font-size: 9px; color: #1e293b; margin-left: auto; }
+
+    .activity-item.ev-working  .a-icon, .activity-item.ev-working  .a-text { color: #3b82f6; }
+    .activity-item.ev-done     .a-icon { color: #22c55e; }
+    .activity-item.ev-done     .a-text { color: #475569; }
+    .activity-item.ev-waiting  .a-icon, .activity-item.ev-waiting  .a-text { color: #f59e0b; }
+    .activity-item.ev-subagent .a-icon, .activity-item.ev-subagent .a-text { color: #38bdf8; }
+    .activity-item.ev-task     .a-icon, .activity-item.ev-task     .a-text { color: #a3e635; }
+    .activity-item.ev-notif    .a-icon, .activity-item.ev-notif    .a-text { color: #e879f9; }
+    .activity-item.ev-session  .a-icon, .activity-item.ev-session  .a-text { color: #94a3b8; }
+
+    .empty { grid-column: 1/-1; text-align: center; color: #1e293b; font-size: 13px; padding: 60px 0; line-height: 1.8; }
+
+    /* ── Context Menu ──────────────────────────────── */
+    .ctx-menu {
+      position: fixed;
+      background: #13131f;
+      border: 1px solid #252540;
+      border-radius: 8px;
+      padding: 4px 0;
+      min-width: 200px;
+      z-index: 1000;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+      display: none;
+    }
+    .ctx-menu.visible { display: block; }
+    .ctx-label { padding: 6px 12px 4px; font-size: 9px; color: #1e293b; border-bottom: 1px solid #1a1a2e; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px; }
+    .ctx-item { padding: 7px 12px; font-size: 11.5px; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .ctx-item:hover { background: #1a1a2e; color: #e2e8f0; }
+    .ctx-item.primary { color: #a78bfa; }
+    .ctx-item.primary:hover { color: #c4b5fd; }
+    .ctx-item.danger { color: #f87171; }
+    .ctx-item.danger:hover { background: #200a0a; color: #fca5a5; }
+
+    /* ── Toast ─────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: #13131f; border: 1px solid #252540;
+      border-radius: 8px; padding: 9px 14px;
+      font-size: 11.5px; color: #64748b;
+      z-index: 2000; opacity: 0; transform: translateY(6px);
+      transition: opacity 0.18s, transform 0.18s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: #166534; color: #22c55e; }
+    .toast.error   { border-color: #7f1d1d; color: #f87171; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="pulse"></div>
+  <h1>Claude HQ</h1>
+  <span class="meta" id="updated">—</span>
+  <button id="push-btn" title="Toggle push notifications">🔔 Enable alerts</button>
+</header>
+
+<div class="layout">
+
+  <!-- File browser -->
+  <div class="filebrowser">
+    <div class="panel-label">Files — ~/</div>
+    <div class="filebrowser-tree" id="file-tree">
+      <div style="padding:10px 12px;font-size:11px;color:#1e293b">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Sessions -->
+  <div class="sessions-panel">
+
+    <div class="attention" id="attention-banner"></div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="st-total">0</div>
+        <div class="stat-label">Sessions</div>
+      </div>
+      <div class="stat s-working">
+        <div class="stat-value" id="st-working">0</div>
+        <div class="stat-label">Working</div>
+      </div>
+      <div class="stat s-thinking">
+        <div class="stat-value" id="st-thinking">0</div>
+        <div class="stat-label">Thinking</div>
+      </div>
+      <div class="stat s-waiting">
+        <div class="stat-value" id="st-waiting">0</div>
+        <div class="stat-label">Needs input</div>
+      </div>
+    </div>
+
+    <div class="grid" id="grid">
+      <div class="empty">No active sessions.<br>Start Claude in a folder to see it here.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Context menu -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-label" id="ctx-label"></div>
+  <div class="ctx-item primary" id="ctx-launch" style="display:none">▶ Start new Claude session</div>
+  <div class="ctx-item"         id="ctx-reveal" style="display:none">⌥ Reveal in Finder</div>
+  <div class="ctx-item danger"  id="ctx-kill"   style="display:none">✕ Kill session</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Utilities ──────────────────────────────────────────────────────────────
+
+function shortPath(p) { return p.replace(/^\/Users\/[^/]+/, '~'); }
+
+function ago(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 5)    return 'now';
+  if (s < 60)   return `${s}s`;
+  if (s < 3600) return `${Math.floor(s/60)}m`;
+  return `${Math.floor(s/3600)}h`;
+}
+
+// ─── Activity ────────────────────────────────────────────────────────────────
+
+const ICON_CLASS = {
+  '→': 'ev-working',
+  '✓': 'ev-done',
+  '⚠': 'ev-waiting',
+  '⎇': 'ev-subagent',
+  '◉': 'ev-task',
+  '🔔': 'ev-notif',
+  '◎': 'ev-session',
+  '■': 'ev-session',
+  '◌': 'ev-session',
+  '⇢': 'ev-session',
+};
+
+function renderActivity(items) {
+  if (!items.length) return '';
+  return `<div class="activity-feed">${
+    items.map(a => {
+      const cls = ICON_CLASS[a.icon] || '';
+      return `<div class="activity-item ${cls}">
+        <span class="a-icon">${a.icon}</span>
+        <span class="a-text">${esc(a.summary)}</span>
+        <span class="a-ts">${ago(a.ts)}</span>
+      </div>`;
+    }).join('')
+  }</div>`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── Sessions ────────────────────────────────────────────────────────────────
+
+const STATUS_LABEL = { working: 'Working', thinking: 'Thinking', waiting: 'Needs input', idle: 'Idle', ended: 'Ended' };
+
+async function refreshSessions() {
+  try {
+    const { sessions, updatedAt } = await fetch('/api/sessions').then(r => r.json());
+
+    document.getElementById('st-total').textContent   = sessions.filter(s => s.status !== 'ended').length;
+    document.getElementById('st-working').textContent  = sessions.filter(s => s.status === 'working').length;
+    document.getElementById('st-thinking').textContent = sessions.filter(s => s.status === 'thinking').length;
+    document.getElementById('st-waiting').textContent  = sessions.filter(s => s.status === 'waiting').length;
+
+    document.getElementById('updated').textContent = `updated ${new Date(updatedAt).toLocaleTimeString()}`;
+
+    const needsInput = sessions.filter(s => s.status === 'waiting');
+    const banner = document.getElementById('attention-banner');
+    if (needsInput.length) {
+      banner.style.display = 'block';
+      banner.innerHTML = `<strong>${needsInput.length} session${needsInput.length > 1 ? 's' : ''} need${needsInput.length === 1 ? 's' : ''} confirmation:</strong> ${needsInput.map(s => shortPath(s.cwd)).join(', ')}`;
+    } else {
+      banner.style.display = 'none';
+    }
+
+    const grid = document.getElementById('grid');
+    if (!sessions.length) {
+      grid.innerHTML = '<div class="empty">No active sessions.<br>Start Claude in a folder to see it here.</div>';
+      return;
+    }
+
+    grid.innerHTML = sessions.map(s => {
+      const label = STATUS_LABEL[s.status] || s.status;
+
+      // Source indicator for PS-discovered sessions
+      const sourcePill = s.source === 'ps'
+        ? `<span class="source-ps">ps</span>`
+        : '';
+
+      // Tool pill
+      const toolPill = s.currentTool
+        ? `<span class="tool-pill">${esc(s.currentTool)}</span>`
+        : '';
+
+      // Subagents row
+      let subRow = '';
+      if (s.subagents.active > 0 || s.subagents.total > 0) {
+        const chips = s.subagents.types.map(t => `<span class="agent-chip">${esc(t)}</span>`).join('');
+        const doneCount = s.subagents.total - s.subagents.active;
+        const doneText = doneCount > 0 ? `<span class="agent-chip done">+${doneCount} done</span>` : '';
+        subRow = `<div class="subagents-row">
+          <span class="subagents-label">⎇ agents</span>
+          ${chips}${doneText}
+        </div>`;
+      }
+
+      // Tasks row
+      let taskRow = '';
+      if (s.tasks.total > 0) {
+        const pct = Math.round((s.tasks.done / s.tasks.total) * 100);
+        taskRow = `<div class="tasks-row">
+          <div class="tasks-meta"><span>◉ tasks</span><span>${s.tasks.done} / ${s.tasks.total}</span></div>
+          <div class="task-track"><div class="task-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }
+
+      return `<div class="card ${s.status}" data-session-id="${s.session_id}" data-cwd="${esc(s.cwd)}">
+        <div class="card-top">
+          <span class="badge ${s.status}">${label}</span>
+          ${toolPill}
+          ${sourcePill}
+          <span class="session-id">${s.session_id.startsWith('ps:') ? 'pid:'+s.session_id.slice(3) : s.session_id.slice(0, 8)}</span>
+        </div>
+        <div class="cwd"><em>dir</em> ${esc(shortPath(s.cwd))}</div>
+        ${subRow}
+        ${taskRow}
+        ${renderActivity(s.activity)}
+      </div>`;
+    }).join('');
+
+    // Bind right-click on cards
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        showCtx(e, 'session', { session_id: card.dataset.sessionId, cwd: card.dataset.cwd });
+      });
+    });
+
+  } catch {
+    document.getElementById('grid').innerHTML = '<div class="empty">Cannot reach server.</div>';
+  }
+}
+
+// ─── File browser ─────────────────────────────────────────────────────────────
+
+let BASE_DIR = '';
+
+async function loadDir(dirPath) {
+  const r = await fetch(`/api/files?path=${encodeURIComponent(dirPath)}`);
+  if (!r.ok) throw new Error();
+  return r.json();
+}
+
+function buildTreeItem(item, depth) {
+  const indent = depth * 14;
+  const div = document.createElement('div');
+  div.className = `tree-item ${item.isDir ? 'dir' : 'file'}`;
+  div.dataset.path = item.path;
+  div.innerHTML = `
+    <span class="indent" style="width:${indent}px;display:inline-block"></span>
+    <span class="chevron ${item.isDir ? '' : 'leaf'}">▶</span>
+    <span class="icon">${item.isDir ? '▸' : '·'}</span>
+    <span class="name">${item.name}</span>
+  `;
+
+  if (!item.isDir) return { el: div, children: null };
+
+  const kids = document.createElement('div');
+  kids.className = 'tree-children';
+
+  div.addEventListener('click', async e => {
+    e.stopPropagation();
+    const open = kids.classList.contains('open');
+    if (open) { kids.classList.remove('open'); div.classList.remove('open'); return; }
+    if (!kids.dataset.loaded) {
+      kids.innerHTML = `<div class="tree-item" style="padding-left:${indent+26}px;color:#1e293b;font-size:10.5px">…</div>`;
+      kids.classList.add('open'); div.classList.add('open');
+      try {
+        const { items } = await loadDir(item.path);
+        kids.innerHTML = '';
+        items.forEach(c => { const { el, children } = buildTreeItem(c, depth+1); kids.appendChild(el); if (children) kids.appendChild(children); });
+        kids.dataset.loaded = '1';
+      } catch {
+        kids.innerHTML = `<div style="padding-left:${indent+26}px;color:#7f1d1d;font-size:10px">error</div>`;
+      }
+    } else { kids.classList.add('open'); div.classList.add('open'); }
+  });
+
+  div.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); showCtx(e, 'file', { path: item.path }); });
+
+  return { el: div, children: kids };
+}
+
+async function initFileTree() {
+  const tree = document.getElementById('file-tree');
+  try {
+    if (!BASE_DIR) {
+      const cfg = await fetch('/api/config').then(r => r.json());
+      BASE_DIR = cfg.baseDir;
+    }
+    const { items } = await loadDir(BASE_DIR);
+    tree.innerHTML = '';
+    items.forEach(item => { const { el, children } = buildTreeItem(item, 0); tree.appendChild(el); if (children) tree.appendChild(children); });
+  } catch {
+    tree.innerHTML = '<div style="padding:10px 12px;color:#7f1d1d;font-size:10.5px">Failed to load</div>';
+  }
+}
+
+// ─── Context menu ─────────────────────────────────────────────────────────────
+
+const ctxMenu = document.getElementById('ctx-menu');
+let ctxData = null;
+
+function showCtx(e, type, data) {
+  ctxData = { type, data };
+  document.getElementById('ctx-label').textContent = type === 'file' ? shortPath(data.path) : shortPath(data.cwd);
+  document.getElementById('ctx-launch').style.display = type === 'file'    ? 'flex' : 'none';
+  document.getElementById('ctx-reveal').style.display = type === 'file'    ? 'flex' : 'none';
+  document.getElementById('ctx-kill').style.display   = type === 'session' ? 'flex' : 'none';
+  ctxMenu.style.left = Math.min(e.clientX, window.innerWidth  - 220) + 'px';
+  ctxMenu.style.top  = Math.min(e.clientY, window.innerHeight - 120) + 'px';
+  ctxMenu.classList.add('visible');
+}
+
+function hideCtx() { ctxMenu.classList.remove('visible'); ctxData = null; }
+
+document.getElementById('ctx-launch').addEventListener('click', async () => {
+  if (!ctxData) return;
+  const p = ctxData.data.path; hideCtx();
+  const r = await fetch('/api/launch-claude', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ path: p }) });
+  r.ok ? toast('Session launched', 'success') : toast('Launch failed', 'error');
+});
+
+document.getElementById('ctx-reveal').addEventListener('click', () => {
+  if (!ctxData) return;
+  fetch('/api/reveal', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ path: ctxData.data.path }) });
+  hideCtx();
+});
+
+document.getElementById('ctx-kill').addEventListener('click', async () => {
+  if (!ctxData) return;
+  const id = ctxData.data.session_id; hideCtx();
+  const r = await fetch('/api/kill', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_id: id }) });
+  if (r.ok) { toast('Session killed', 'success'); refreshSessions(); }
+  else { const { error } = await r.json(); toast('Error: ' + error, 'error'); }
+});
+
+document.addEventListener('click', hideCtx);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideCtx(); });
+
+// ─── Toast ───────────────────────────────────────────────────────────────────
+
+let _toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ─── Push notifications ───────────────────────────────────────────────────────
+
+let _swReg = null;
+let _pushSub = null;
+
+function urlBase64ToUint8Array(base64String) {
+  const pad = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + pad).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function initPush() {
+  const btn = document.getElementById('push-btn');
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    btn.textContent = '🔔 Not supported';
+    btn.disabled = true;
+    return;
+  }
+
+  _swReg = await navigator.serviceWorker.register('/sw.js');
+  _pushSub = await _swReg.pushManager.getSubscription();
+
+  updatePushBtn();
+
+  btn.addEventListener('click', togglePush);
+}
+
+function updatePushBtn() {
+  const btn = document.getElementById('push-btn');
+  if (_pushSub) {
+    btn.textContent = '🔔 Alerts on';
+    btn.className = 'on';
+  } else {
+    btn.textContent = '🔕 Enable alerts';
+    btn.className = '';
+  }
+}
+
+async function togglePush() {
+  const btn = document.getElementById('push-btn');
+  if (_pushSub) {
+    // Unsubscribe
+    await fetch('/api/push/unsubscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: _pushSub.endpoint }),
+    });
+    await _pushSub.unsubscribe();
+    _pushSub = null;
+    updatePushBtn();
+    toast('Push alerts disabled');
+  } else {
+    // Subscribe
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      toast('Notification permission denied', 'error');
+      btn.className = 'off';
+      return;
+    }
+    const { key } = await fetch('/api/push/vapid-public-key').then(r => r.json());
+    _pushSub = await _swReg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key),
+    });
+    await fetch('/api/push/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(_pushSub),
+    });
+    updatePushBtn();
+    toast('Push alerts enabled', 'success');
+  }
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+
+initFileTree();
+initPush();
+refreshSessions();
+setInterval(refreshSessions, 2000);
+</script>
+</body>
+</html>
