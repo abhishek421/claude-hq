@@ -717,8 +717,11 @@ async function initFileTree() {
 }
 
 document.getElementById('tree-expand-all').addEventListener('click', () => {
-  document.querySelectorAll('#file-tree .tree-children').forEach(el => el.classList.add('open'));
-  document.querySelectorAll('#file-tree .tree-item.dir').forEach(el => el.classList.add('open'));
+  document.querySelectorAll('#file-tree .tree-children[data-loaded]').forEach(kids => {
+    kids.classList.add('open');
+    const item = kids.previousElementSibling;
+    if (item) item.classList.add('open');
+  });
 });
 
 document.getElementById('tree-collapse-all').addEventListener('click', () => {
