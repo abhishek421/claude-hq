@@ -1,41 +1,66 @@
 # Claude Ops
 
-A real-time local dashboard for monitoring and managing your [Claude Code](https://claude.ai/code) sessions.
+> A real-time local dashboard for monitoring and managing your [Claude Code](https://claude.ai/code) sessions.
 
-See what every running Claude agent is doing, get OS push notifications when one needs your input, browse your filesystem, and launch or kill sessions — all from one browser tab.
+[![License: MIT](https://img.shields.io/badge/License-MIT-white.svg?style=flat-square)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-20+-white.svg?style=flat-square)](https://nodejs.org)
+[![Platform](https://img.shields.io/badge/Platform-macOS-white.svg?style=flat-square)](#)
 
----
+See what every running agent is doing, get OS push notifications when one needs your input, browse your filesystem, and launch or kill sessions — all from one browser tab.
+
+<br>
+
+![Session Cards](screenshots/agents.png)
+
+<br>
 
 ## Features
 
-- **Live session monitoring** — status updates via Claude Code hooks (Working, Thinking, Idle, Needs input)
-- **Activity feed per session** — see every tool call as it happens (Bash, Read, Write, WebSearch…)
-- **Subagent tracking** — when a session spawns child agents, they appear as chips on the card
-- **Task progress** — tracks TaskCreate / TaskCompleted events with a progress bar
-- **PS fallback** — sessions that haven't fired a hook yet are still discovered via `ps` and shown as Idle
-- **File browser** — browse your filesystem, right-click any folder to start a new Claude session in Terminal
-- **Push notifications** — get an OS notification when a session needs confirmation, even with the tab in the background
-- **Kill sessions** — right-click any session card to send SIGTERM
+**Session monitoring**
+- Real-time status per session: `Working`, `Thinking`, `Idle`, `Needs input`
+- Current tool displayed live as Claude executes (Bash, Read, Write, WebSearch…)
+- Subagent tracking — spawned agents appear as chips on the parent card
+- Task progress bar from `TaskCreate` / `TaskCompleted` hook events
+- Kill any session directly from its card
 
----
+**File browser**
+- Collapsible sidebar rooted at your home directory
+- Hover any folder to reveal a launch button — opens a new Claude session in Terminal
+- Right-click for context menu: launch, reveal in Finder
+- Expand all / Collapse all for already-loaded nodes
+
+![File Browser](screenshots/filesystem.png)
+
+**Notifications**
+- OS push notifications when a session fires `PermissionRequest` or `Notification`
+- In-page attention banner when any session needs confirmation
+- Audio alerts with selectable sounds (Chime, Pulse, Soft ding)
+
+![Settings Panel](screenshots/notifications.png)
+
+**Process discovery**
+- Sessions already running before the dashboard opened are discovered via `ps` and shown as `Idle`
+- Hooks upgrade them to live status automatically once they fire
+
+<br>
 
 ## Requirements
 
-- macOS (uses `osascript` to open Terminal and `lsof` for process discovery)
+- macOS (uses `osascript` to open Terminal, `lsof` for process discovery)
 - Node.js 20+
 - [Claude Code](https://claude.ai/code) CLI
 
----
+<br>
 
 ## Setup
 
-### 1. Install prerequisites (if not already installed)
+### 1. Install prerequisites
 
 ```bash
-# Node.js 20+  —  https://nodejs.org
+# Node.js 20+ — https://nodejs.org
 node --version
 
-# Claude Code
+# Claude Code CLI
 npm install -g @anthropic-ai/claude-code
 ```
 
@@ -56,7 +81,7 @@ npm run setup
 This does three things automatically:
 - Generates Web Push (VAPID) keys and writes them to `.env`
 - Sets `BASE_DIR` to your home directory in `.env`
-- Patches `~/.claude/settings.json` to add all hooks pointing to your local clone
+- Patches `~/.claude/settings.json` to register all 13 hooks
 
 ### 4. Start the dashboard
 
@@ -66,17 +91,13 @@ npm start
 
 Open **http://localhost:4242** in your browser.
 
-### 5. Enable push notifications (optional)
+### 5. Start a Claude Code session
 
-Click **🔕 Enable alerts** in the top-right corner and allow notifications. You'll get an OS notification whenever a session needs your input, even with the tab in the background.
+`cd` into any project and run `claude`. It appears in the dashboard immediately.
 
-### 6. Start a Claude Code session
+> Sessions started before `npm run setup` won't have hooks active. Start a fresh session for full coverage — existing sessions still appear via process discovery as `Idle`.
 
-Open a new terminal, `cd` into any project, and run `claude`. The session will appear in the dashboard immediately.
-
-> **Note:** any Claude Code sessions that were already open before `npm run setup` won't have the new hooks active. Start a fresh session after setup for full hook coverage. Existing sessions still appear via process discovery but show as `Idle` only.
-
----
+<br>
 
 ## Configuration
 
@@ -90,11 +111,11 @@ All config lives in `.env` (created by `npm run setup`, never committed):
 | `BASE_DIR` | `$HOME` | Root directory for the file browser |
 | `PORT` | `4242` | Server port |
 
----
+<br>
 
 ## How Hooks Work
 
-`npm run setup` writes entries like this into `~/.claude/settings.json`:
+`npm run setup` patches `~/.claude/settings.json` with entries like:
 
 ```json
 {
@@ -106,23 +127,13 @@ All config lives in `.env` (created by `npm run setup`, never committed):
 }
 ```
 
-Full list of wired hooks: `SessionStart`, `SessionEnd`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop`, `PermissionRequest`, `SubagentStart`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `Notification`, `CwdChanged`.
+All 13 hooks wired: `SessionStart`, `SessionEnd`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop`, `PermissionRequest`, `SubagentStart`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `Notification`, `CwdChanged`.
 
-All hooks are `async: true` — they never block Claude.
+All hooks use `async: true` — they never block Claude.
 
-`hq-notify.sh` reads the hook JSON from stdin and POSTs it to the local server on port 4242. If the server isn't running, the script fails silently.
+`hq-notify.sh` reads the hook JSON from stdin and POSTs it to `localhost:4242`. If the server isn't running the script exits silently.
 
----
-
-## Push Notifications
-
-1. Start the server and open `http://localhost:4242`
-2. Click **🔕 Enable alerts** in the top-right
-3. Allow notifications in the browser prompt
-
-You'll get an OS notification whenever a session fires `PermissionRequest` (needs your approval) or `Notification`. Clicking the notification focuses or opens the dashboard tab.
-
----
+<br>
 
 ## License
 
